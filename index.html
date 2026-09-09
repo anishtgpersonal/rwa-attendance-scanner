@@ -89,22 +89,18 @@ const APPS_SCRIPT_URL =
 let processing = false;
 let lastPayload = '';
 
-
 function sendToAppsScript(payload) {
+
   const url =
     APPS_SCRIPT_URL +
     '?action=scan&payload=' +
     encodeURIComponent(payload);
 
-  const img = document.createElement('img');
-  img.style.display = 'none';
-  img.src = url;
+  document.getElementById('result').innerHTML =
+    'Sending...<br><br>' +
+    '<small>' + url + '</small>';
 
-  document.body.appendChild(img);
-
-  setTimeout(function() {
-    img.remove();
-  }, 5000);
+  window.open(url, '_blank');
 }
 
 function onScanSuccess(decodedText) {
