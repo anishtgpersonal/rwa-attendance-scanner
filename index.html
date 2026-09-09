@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <title>RWA Meeting Attendance</title>
+
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 14px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-top: 0;
+    }
+
+    #reader {
+      width: 100%;
+    }
+
+    #result {
+      margin-top: 20px;
+      padding: 18px;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      background: #eeeeee;
+    }
+
+    .success {
+      background: #dff5e3 !important;
+      color: #176b2c;
+    }
+
+    .error {
+      background: #fde2e2 !important;
+      color: #a00000;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+  <h2>RWA Meeting Attendance</h2>
+
+  <div id="reader"></div>
+
+  <div id="result">
+    Scan MyGate QR
+  </div>
+
+</div>
+
+
+<script>
+
+const APPS_SCRIPT_URL =
+  'https://script.google.com/a/macros/plhhoa.in/s/AKfycbzf5EgBVn5XTNEjBph_72qFKGK9-KMVAMeBTO_WEdltXK0rK_zB2pGIdYsjR5y-pyVk6w/exec';
+
+
+let processing = false;
+let lastPayload = '';
+
+
+function sendToAppsScript(payload) {
+
+  /*
+   * We deliberately use a hidden form rather than fetch().
+   *
+   * This avoids cross-origin/CORS problems between
+   * GitHub Pages and Google Apps Script.
+   */
+
+  const iframe = document.createElement('iframe');
+
+  iframe.name = 'scanTarget_' + Date.now();
+
+  iframe.style.display = 'none';
+
+  document.body.appendChild(iframe);
+
+
+  const form = document.createElement('form');
+
+  form.method = 'GET';
+
+  form.action = APPS_SCRIPT_URL;
+
+  form.target = iframe.name;
+
+  form.style.display = 'none';
+
+
+  const action = document.createElement('input');
+
+  action.name = 'action';
+
+  action.value = 'scan';
+
+  form.appendChild(action);
+
+
+  const payloadInput = document.createElement('input');
+
+  payloadInput.name = 'payload';
+
+  payloadInput.value = payload;
+
+  form.appendChild(payloadInput);
+
+
+  document.body.appendChild(form);
+
+  form.submit();
+
+
+  setTimeout(function() {
+
+    form.remove();
+
+    iframe.remove();
+
+  }, 5000);
+
+}
+
+
+function onScanSuccess(decodedText) {
+
+  if (processing) {
+    return;
+  }
+
+  if (decodedText === lastPayload) {
+    return;
+  }
+
+
+  processing = true;
+
+  lastPayload = decodedText;
+
+
+  // Extract the first numeric value.
+  //
+  // Example:
+  // 244263 PC_5eb58af2c4fda21e02f69a52
+
+  const match = decodedText.match(/^\s*(\d+)/);
+
+
+  if (!match) {
+
+    document.getElementById('result').className =
+      'error';
+
+    document.getElementById('result').innerHTML =
+      '✕ Could not identify Resident ID';
+
+    processing = false;
+
+    return;
+  }
+
+
+  const residentId = match[1];
+
+
+  document.getElementById('result').className =
+    'success';
+
+  document.getElementById('result').innerHTML =
+    '✓ QR SCANNED<br><br>' +
+    'Resident ID: <b>' +
+    residentId +
+    '</b>';
+
+
+  // Send the complete QR payload to Apps Script.
+
+  sendToAppsScript(decodedText);
+
+
+  // Allow another scan after 2 seconds.
+
+  setTimeout(function() {
+
+    processing = false;
+    lastPayload = '';
+
+    document.getElementById('result').className = '';
+
+    document.getElementById('result').innerHTML =
+      'Scan next MyGate QR';
+
+  }, 2000);
+
+}
+
+
+function onScanFailure(error) {
+  // Normal camera scanning failures are ignored.
+}
+
+
+const scanner = new Html5QrcodeScanner(
+
+  'reader',
+
+  {
+    fps: 10,
+
+    qrbox: {
+      width: 250,
+      height: 250
+    },
+
+    rememberLastUsedCamera: true
+
+  },
+
+  false
+
+);
+
+
+scanner.render(
+  onScanSuccess,
+  onScanFailure
+);
+
+</script>
+
+</body>
+</html>
