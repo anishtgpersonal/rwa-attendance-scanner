@@ -91,67 +91,21 @@ let lastPayload = '';
 
 
 function sendToAppsScript(payload) {
+  const url =
+    APPS_SCRIPT_URL +
+    '?action=scan&payload=' +
+    encodeURIComponent(payload);
 
-  /*
-   * We deliberately use a hidden form rather than fetch().
-   *
-   * This avoids cross-origin/CORS problems between
-   * GitHub Pages and Google Apps Script.
-   */
+  const img = document.createElement('img');
+  img.style.display = 'none';
+  img.src = url;
 
-  const iframe = document.createElement('iframe');
-
-  iframe.name = 'scanTarget_' + Date.now();
-
-  iframe.style.display = 'none';
-
-  document.body.appendChild(iframe);
-
-
-  const form = document.createElement('form');
-
-  form.method = 'GET';
-
-  form.action = APPS_SCRIPT_URL;
-
-  form.target = iframe.name;
-
-  form.style.display = 'none';
-
-
-  const action = document.createElement('input');
-
-  action.name = 'action';
-
-  action.value = 'scan';
-
-  form.appendChild(action);
-
-
-  const payloadInput = document.createElement('input');
-
-  payloadInput.name = 'payload';
-
-  payloadInput.value = payload;
-
-  form.appendChild(payloadInput);
-
-
-  document.body.appendChild(form);
-
-  form.submit();
-
+  document.body.appendChild(img);
 
   setTimeout(function() {
-
-    form.remove();
-
-    iframe.remove();
-
+    img.remove();
   }, 5000);
-
 }
-
 
 function onScanSuccess(decodedText) {
 
