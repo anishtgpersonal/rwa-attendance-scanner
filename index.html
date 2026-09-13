@@ -107,6 +107,7 @@ function sendToAppsScript(residentId) {
     img.remove();
   }, 5000);
 }
+  
 function onScanSuccess(decodedText) {
 
   if (processing) {
@@ -160,8 +161,7 @@ function onScanSuccess(decodedText) {
 
   // Send the complete QR payload to Apps Script.
 
-  sendToAppsScript(decodedText);
-
+sendToAppsScript(residentId);
 
   // Allow another scan after 2 seconds.
 
