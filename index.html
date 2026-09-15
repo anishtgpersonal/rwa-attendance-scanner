@@ -107,6 +107,29 @@ function sendToAppsScript(residentId) {
     img.remove();
   }, 5000);
 }
+
+function playScanSound() {
+  const audioContext =
+    new (window.AudioContext || window.webkitAudioContext)();
+
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+
+  oscillator.frequency.value = 1200;
+  oscillator.type = 'sine';
+
+  gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(
+    0.001,
+    audioContext.currentTime + 0.15
+  );
+
+  oscillator.start();
+  oscillator.stop(audioContext.currentTime + 0.15);
+}
   
 function onScanSuccess(decodedText) {
 
@@ -120,6 +143,7 @@ function onScanSuccess(decodedText) {
 
 
   processing = true;
+  playScanSound();
 
   lastPayload = decodedText;
 
